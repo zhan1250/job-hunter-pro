@@ -20,7 +20,9 @@ This skill automates the complete job search workflow: multi-platform search, in
 - **Strict Ratio Control**: Enforces 5-5-5-5 distribution across 4 job categories
 - **Browser Automation**: Uses Chrome automation for reliable data extraction
 
-## 🎯 Job Categories (5-5-5-5 Rule)
+## 🎯 Job Categories (Configurable)
+
+**Default Configuration** (5-5-5-5 Rule):
 
 | Category | Count | Keywords | Priority |
 |:---|:---:|:---|:---:|
@@ -30,6 +32,44 @@ This skill automates the complete job search workflow: multi-platform search, in
 | **AI/Creative** | 5 | AIGC、AI产品经理、内容运营、漫剧创作 | ⭐⭐⭐ |
 
 **Total**: Exactly 20 jobs per day, strictly 5+5+5+5 distribution
+
+### 🔧 Customizable Categories
+
+Users can define their own job categories in `config.json`:
+
+```json
+{
+  "job_categories": [
+    {
+      "name": "数据分析师",
+      "count": 5,
+      "keywords": ["数据分析师", "数据分析专员", "商业数据分析"],
+      "priority": 5
+    },
+    {
+      "name": "产品经理",
+      "count": 5,
+      "keywords": ["产品经理", "PM", "产品运营"],
+      "priority": 4
+    },
+    {
+      "name": "运营专员",
+      "count": 5,
+      "keywords": ["运营", "新媒体运营", "内容运营"],
+      "priority": 3
+    },
+    {
+      "name": "市场营销",
+      "count": 5,
+      "keywords": ["市场营销", "市场专员", "品牌推广"],
+      "priority": 3
+    }
+  ],
+  "total_daily": 20
+}
+```
+
+**Flexible Distribution**: Users can adjust counts per category (e.g., 8-4-4-4, 10-5-3-2) as long as total = 20
 
 ## 📊 Platform Distribution
 
@@ -64,12 +104,18 @@ Searches for jobs across multiple platforms with intelligent filtering.
 
 ### `generate_job_report`
 
-Generates structured CSV/Excel report from collected jobs.
+Generates structured Excel report with **clickable hyperlinks** from collected jobs.
 
 **Parameters:**
 - `jobs` (array): Array of job objects
 - `date` (string): Report date (YYYY-MM-DD)
-- `format` (string): "csv" or "excel" (default: "excel")
+- `format` (string): "excel" (default, with hyperlinks) or "csv"
+
+**Output Format: Excel with Clickable Links**
+
+✅ **Hyperlink Support**: Job URLs are formatted as clickable hyperlinks in Excel
+- Click cell → Opens job page in browser
+- Format: `=HYPERLINK("https://...", "点击查看职位")`
 
 **Output Columns:**
 1. 排名 (Rank)
@@ -80,9 +126,16 @@ Generates structured CSV/Excel report from collected jobs.
 6. 经验要求 (Experience)
 7. 学历要求 (Education)
 8. 薪资范围 (Salary Range)
-9. 职位链接 (Job URL) - **Required**
+9. **职位链接 (Job URL)** - ✅ **Clickable hyperlink**
 10. 匹配度 (Match Percentage)
 11. 备注 (Notes)
+
+**Excel Features:**
+- ✅ Clickable job links (opens in browser)
+- ✅ Auto-filter enabled on all columns
+- ✅ Freeze header row
+- ✅ Conditional formatting for match percentage
+- ✅ Professional styling with borders
 
 ### `update_company_blacklist`
 
@@ -164,12 +217,32 @@ Create `~/.openclaw/job-hunter-pro/config.json`:
 {
   "target_location": "上海市区",
   "daily_target": 20,
-  "category_distribution": {
-    "data_analyst": 5,
-    "trade_specialist": 5,
-    "foreign_trade": 5,
-    "ai_creative": 5
-  },
+  "job_categories": [
+    {
+      "name": "数据分析师",
+      "count": 5,
+      "keywords": ["数据分析师", "数据分析专员", "商业数据分析"],
+      "priority": 5
+    },
+    {
+      "name": "贸易专员",
+      "count": 5,
+      "keywords": ["贸易专员", "大宗商品交易员", "进出口运营"],
+      "priority": 4
+    },
+    {
+      "name": "外贸业务员",
+      "count": 5,
+      "keywords": ["外贸业务员", "外贸销售", "国际业务专员"],
+      "priority": 3
+    },
+    {
+      "name": "AI创作",
+      "count": 5,
+      "keywords": ["AIGC", "AI产品经理", "内容运营", "漫剧创作"],
+      "priority": 3
+    }
+  ],
   "platforms": [
     "zhaopin",
     "linkedin",
@@ -178,7 +251,13 @@ Create `~/.openclaw/job-hunter-pro/config.json`:
     "51job"
   ],
   "output_path": "~/Desktop/求职/",
-  "blacklist_file": "~/Desktop/求职/已推荐公司清单.txt"
+  "blacklist_file": "~/Desktop/求职/已推荐公司清单.txt",
+  "excel_settings": {
+    "hyperlink_format": "clickable",
+    "auto_filter": true,
+    "freeze_header": true,
+    "conditional_formatting": true
+  }
 }
 ```
 
@@ -217,11 +296,32 @@ Agent:
 
 **Excel File**: `职位列表_2026-03-15.xlsx`
 
-| 排名 | 职位名称 | 公司名称 | 公司类型 | 地点 | 经验要求 | 学历要求 | 薪资范围 | 职位链接 | 匹配度 | 备注 |
-|:---:|:---|:---|:---:|:---|:---:|:---:|:---:|:---|:---:|:---|
-| 1 | 数据分析师 | ABC科技 | 外企 | 静安区 | 3-5年 | 本科 | 25-35K | [链接](...) | 95% | 匹配度高 |
-| 2 | 贸易专员 | XYZ贸易 | 民企 | 黄浦区 | 1-3年 | 本科 | 15-25K | [链接](...) | 90% | - |
+### 📊 Excel Preview
+
+| 排名 | 职位名称 | 公司名称 | 公司类型 | 地点 | 经验要求 | 学历要求 | 薪资范围 | **职位链接** | 匹配度 | 备注 |
+|:---:|:---|:---|:---:|:---|:---:|:---:|:---:|:---:|:---:|:---|
+| 1 | 数据分析师 | ABC科技 | 外企 | 静安区 | 3-5年 | 本科 | 25-35K | **[点击查看职位](https://www.liepin.com/job/12345.html)** ⬅️ **可点击** | 95% | 匹配度高 |
+| 2 | 贸易专员 | XYZ贸易 | 民企 | 黄浦区 | 1-3年 | 本科 | 15-25K | **[点击查看职位](https://www.zhaopin.com/job/67890.html)** ⬅️ **可点击** | 90% | - |
 | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
+
+### ✨ Excel Features
+
+✅ **Clickable Hyperlinks**: 
+- 职位链接列 = 可点击的超链接
+- 点击单元格 → 自动打开浏览器
+- 格式：`=HYPERLINK("URL", "点击查看职位")`
+
+✅ **Auto-Filter**: 所有列支持筛选排序
+✅ **Freeze Header**: 首行冻结，滚动时可见
+✅ **Conditional Formatting**: 匹配度高亮显示
+✅ **Professional Styling**: 边框、颜色、字体优化
+
+### 🖱️ 使用方法
+
+1. **打开Excel文件**
+2. **点击"职位链接"列**的任意单元格
+3. **自动打开浏览器**并跳转到职位详情页
+4. **直接投递简历**
 
 ## 🔗 Dependencies
 
