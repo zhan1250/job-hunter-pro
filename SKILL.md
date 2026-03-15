@@ -443,4 +443,15 @@ MIT License - Free for personal and commercial use.
 
 ---
 
-*Optimized for the Chinese job market | Created by Luna Assistant*
+*Optimized for the Chinese job market | Created by Luna Assistant & 张嘉文 (zhan1250)*
+
+---
+
+## 👥 Contributors
+
+| Role | Name | Contribution |
+|:---|:---|:---|
+| **Product Owner** | 张嘉文 (zhan1250) | 需求定义、功能设计、测试验证 |
+| **Developer** | Luna Assistant | 技术实现、文档编写、代码优化 |
+
+**Collaboration**: This skill was co-designed through iterative optimization between human insight and AI implementation.
