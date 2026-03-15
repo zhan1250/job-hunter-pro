@@ -87,18 +87,30 @@ Users can define their own job categories in `config.json`:
 Searches for jobs across multiple platforms with intelligent filtering.
 
 **Parameters:**
-- `category` (string): Job category - "data_analyst", "trade_specialist", "foreign_trade", "ai_creative"
+- `category` (string): Job category name from config
 - `count` (number): Number of jobs to find (default: 5)
 - `location` (string): Target location (default: "上海市区")
 - `exclude_companies` (array): List of companies to exclude
+- `verify_links` (boolean): Enable link verification (default: true)
 
 **Example:**
 ```json
 {
-  "category": "data_analyst",
+  "category": "数据分析师",
   "count": 5,
   "location": "上海市区",
-  "exclude_companies": ["Company A", "Company B"]
+  "exclude_companies": ["Company A", "Company B"],
+  "verify_links": true
+}
+```
+
+**Returns:**
+```json
+{
+  "jobs": [...],
+  "verified_count": 5,
+  "invalid_count": 0,
+  "re_search_count": 0
 }
 ```
 
@@ -158,20 +170,115 @@ Updates the company blacklist with newly found companies.
 - 浦东: 川沙、周浦、南汇、金桥（偏外）
 - 闵行: 浦江、莘庄（偏外）
 
-## 🔍 Search Workflow
+## 🔍 Complete Workflow
 
+### Phase 1: Job Search
 ```
-1. Load company blacklist from ~/Desktop/求职/已推荐公司清单.txt
-2. For each of 4 categories:
+1. Load configuration (job categories, location, platforms)
+2. Load company blacklist from ~/Desktop/求职/已推荐公司清单.txt
+3. For each job category:
    a. Search platform with category keywords
    b. Extract job details (title, company, location, salary, URL)
    c. Filter by location (downtown only)
    d. Check company against blacklist
-   e. Collect until 5 valid jobs per category
-3. Generate Excel report with all 20 jobs
-4. Update company blacklist
-5. Send report to user via Feishu
+   e. Collect until target count per category
 ```
+
+### Phase 2: Link Verification ⭐ NEW
+```
+4. For each collected job:
+   a. Extract job URL
+   b. Send HTTP HEAD request to verify URL accessibility
+   c. Check response status (200 = valid, 404/500 = invalid)
+   d. Verify page content contains job details (not error page)
+   e. Mark as "✅ Verified" or "❌ Invalid"
+   
+5. Filter out invalid links:
+   - Remove jobs with 404/500 status
+   - Remove jobs with redirect to homepage
+   - Remove jobs with "position closed" message
+   
+6. If insufficient valid jobs after filtering:
+   - Re-search to fill gaps
+   - Target: 20 verified jobs minimum
+```
+
+### Phase 3: Report Generation
+```
+7. Generate Excel report with verified jobs only
+8. Format job URLs as clickable hyperlinks
+9. Apply styling (filters, conditional formatting)
+```
+
+### Phase 4: Delivery
+```
+10. Update company blacklist with new companies
+11. Save Excel to ~/Desktop/求职/
+12. Send report to user via Feishu
+13. Include summary: "20 jobs found, 18 verified, 2 invalid links filtered"
+```
+
+## 🔗 Link Verification Details
+
+### Verification Process
+
+**Step 1: URL Accessibility Check**
+```python
+# Check if URL is accessible
+response = requests.head(job_url, timeout=10, allow_redirects=True)
+if response.status_code == 200:
+    status = "accessible"
+elif response.status_code in [404, 410]:
+    status = "job_not_found"
+elif response.status_code >= 500:
+    status = "server_error"
+```
+
+**Step 2: Content Validation**
+```python
+# Verify page contains actual job content
+response = requests.get(job_url, timeout=10)
+content = response.text.lower()
+
+# Check for job-related keywords
+job_keywords = ["职位", "工作", "薪资", "要求", "经验", "学历"]
+if any(keyword in content for keyword in job_keywords):
+    content_valid = True
+else:
+    content_valid = False  # Might be error page or redirect
+
+# Check for "closed" or "expired" indicators
+closed_indicators = ["已关闭", "已停止", "已过期", "position closed", "no longer available"]
+if any(indicator in content for indicator in closed_indicators):
+    job_closed = True
+```
+
+**Step 3: Retry Logic**
+```python
+# If verification fails, retry with full GET request
+if not verified:
+    response = requests.get(job_url, timeout=15, headers=user_agent)
+    # Re-check content
+```
+
+### Verification Results
+
+| Status | Meaning | Action |
+|:---|:---|:---|
+| ✅ **Verified** | Link valid, job active | Include in report |
+| ❌ **404/410** | Job not found | Discard, re-search |
+| ❌ **500+** | Server error | Retry once, then discard |
+| ❌ **Redirect to homepage** | Job expired | Discard, re-search |
+| ❌ **Content mismatch** | Not a job page | Discard, re-search |
+| ❌ **Job closed** | Position filled | Discard, re-search |
+
+### Quality Guarantee
+
+**Minimum Standard**: 
+- 20 jobs searched
+- 100% links verified
+- ≥18 valid jobs in final report
+- If <18 valid: auto re-search to fill gaps
 
 ## 📁 File Structure
 
