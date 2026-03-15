@@ -286,8 +286,8 @@ if not verified:
 ~/Desktop/求职/
 ├── 已推荐公司清单.txt     # Company blacklist
 ├── 职位列表_YYYY-MM-DD.xlsx  # Daily job report
-├── Gavin Resume 2025.docx    # English resume
-└── 张嘉文简历2025.pdf       # Chinese resume
+├── YourName_Resume_EN.docx   # English resume (rename to your name)
+└── YourName_Resume_CN.pdf    # Chinese resume (rename to your name)
 ```
 
 ## 💼 Company Types
