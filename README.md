@@ -152,14 +152,14 @@ job-hunter-pro/
 
 ## 贡献者
 
-👨‍💻 **Gavin Zhang** (张嘉文) - 项目创建者
+👨‍💻 **Gavin Zhang** - 项目创建者
 🤖 **Luna AI Assistant** - 代码实现 & 文档编写
 
 ---
 
 ## 许可证
 
-[MIT License](LICENSE) © 2026 Gavin Zhang & Luna
+[MIT License](LICENSE) © 2026 Job Hunter Pro Team
 
 ---
 
